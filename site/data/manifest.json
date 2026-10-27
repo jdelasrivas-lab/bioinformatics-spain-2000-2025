@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "dataset": "corpus.json",
+  "sha256": "7f2fdfed0378d1d829cd6ee73742c15c2fe20eefd2c6a4a46f3bb2060f89a339",
+  "coordinate_sha256": "7d60d9b4338825c512c6af37176aa79124c98931e3f13f02bd2c3304bac19723",
+  "corpus_articles": 5914,
+  "mapped_articles": 5785,
+  "global_solutions": 22,
+  "global_runs": 110,
+  "local_runs": 125,
+  "broad_groups": 5,
+  "local_subtopics": 15
+}

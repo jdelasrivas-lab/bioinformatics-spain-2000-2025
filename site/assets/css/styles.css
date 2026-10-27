@@ -1,0 +1,1761 @@
+/**
+ * Bioinformatics Research Explorer — presentation layer.
+ *
+ * Components precede responsive, reduced-motion and print overrides.
+ * app.js controls dynamic content and the .active, .selected and .expanded states.
+ * Preserve state selector specificity when changing component or breakpoint rules.
+ * System fonts keep rendering independent of external font services.
+ */
+
+/* 1. Design tokens — shared colors, surfaces and component geometry. */
+:root {
+  color-scheme: light;
+  --ink: #172f3a;
+  --muted: #5c707a;
+  --accent: #146b62;
+  --accent-hover: #10584f;
+  --accent-soft: #edf6f2;
+  --line: #dde5e5;
+  --paper: #fff;
+  --bg: #f4f6f5;
+  --dark: #112e39;
+  --radius: 16px;
+  --shadow: 0 4px 24px #153b4910;
+}
+
+/* 2. Base elements and keyboard focus. */
+* {
+  box-sizing: border-box;
+}
+
+/* Keep browser scroll restoration instant. Global smooth scrolling also animates reloads. */
+html {
+  scroll-behavior: auto;
+  scroll-padding-top: 90px;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--bg);
+  font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--accent);
+  text-underline-offset: 3px;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+canvas:focus-visible {
+  outline: 3px solid #3a9e88;
+  outline-offset: 4px;
+}
+
+button {
+  cursor: pointer;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  padding: 8px 13px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background .15s, border-color .15s;
+}
+
+button:hover:not(:disabled) {
+  background: #eef5f2;
+  border-color: #9cbfb2;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btn-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 9px 16px;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h2 {
+  font-size: 24px;
+  line-height: 1.3;
+  letter-spacing: -.6px;
+  margin-bottom: 8px;
+}
+
+h3 {
+  font-size: 16px;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+p {
+  margin-bottom: 14px;
+}
+
+small,
+.muted {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* 3. Shared layout and presentation utilities. */
+.container {
+  width: min(1440px, calc(100% - 80px));
+  margin-inline: auto;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: fixed;
+  left: 16px;
+  top: -100px;
+  z-index: 100;
+  background: white;
+  padding: 12px;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* The hidden attribute must override component display rules such as flex and grid. */
+[hidden] {
+  display: none !important;
+}
+
+.eyebrow {
+  font-size: 10px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 99px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 650;
+  background: var(--accent-soft);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.section-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: #e7eeeb;
+  color: var(--accent);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.section-heading > div:first-child {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+}
+
+.section-heading h2 {
+  margin-top: -2px;
+}
+
+.section-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.surface {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.section {
+  margin-bottom: 38px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.section-divider {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 23px 0;
+}
+
+/* 4. Sticky navigation and research introduction. */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: #fffffff5;
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+}
+
+.nav-inner {
+  height: 66px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 750;
+  font-size: 14px;
+  letter-spacing: -.2px;
+}
+
+.brand-mark {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  background: var(--dark);
+  border-radius: 8px;
+}
+
+.brand-mark svg {
+  width: 24px;
+  height: 24px;
+}
+
+.brand span:last-child {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav-links a {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.nav-links a:hover,
+.nav-links a[aria-current] {
+  color: var(--accent);
+}
+
+.nav-badge {
+  border: 1px solid var(--line);
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  letter-spacing: .8px;
+  color: var(--muted);
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--dark);
+  color: white;
+  padding: 44px 0 70px;
+}
+
+.hero:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 93% 0%, #24685b80, transparent 55%);
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 285px;
+  gap: 80px;
+  align-items: center;
+}
+
+.hero .eyebrow {
+  color: #96d4c1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.hero h1 {
+  font-size: clamp(30px, 3.6vw, 49px);
+  line-height: 1.14;
+  font-weight: 650;
+  letter-spacing: -1.8px;
+  margin: 0 0 14px;
+}
+
+.hero h1 span {
+  color: #9ad4c3;
+}
+
+.hero-description {
+  max-width: 650px;
+  color: #c2d4d9;
+  font-size: 14px;
+  line-height: 1.75;
+  margin-bottom: 20px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hero-actions .btn-link {
+  color: #133b36;
+  background: #c2ebdc;
+}
+
+.hero-actions .secondary-link {
+  color: #d1e5e6;
+  background: #ffffff0d;
+  border: 1px solid #ffffff29;
+}
+
+.hero-side {
+  border-left: 1px solid #ffffff25;
+  padding-left: 28px;
+}
+
+.hero-side svg {
+  display: block;
+  width: 100%;
+  height: 86px;
+  margin-bottom: 15px;
+}
+
+.hero-side p {
+  color: #b8d0d4;
+  font-size: 12px;
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+
+.hero-side strong {
+  color: #e2f0ec;
+  font-weight: 600;
+}
+
+.hero-meta {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #84b2b0;
+}
+
+/* The negative top margin intentionally overlaps the hero; its stacking order keeps totals visible. */
+.stats {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: -31px;
+  margin-bottom: 35px;
+  border-radius: 13px;
+  overflow: hidden;
+  background: white;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.stat {
+  padding: 22px 27px;
+  border-right: 1px solid var(--line);
+}
+
+.stat:last-child {
+  border: 0;
+}
+
+.stat-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.stat strong {
+  font-size: 30px;
+  line-height: 1.3;
+  font-weight: 650;
+  letter-spacing: -1px;
+}
+
+.stat small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+}
+
+.stat-accent {
+  color: var(--accent);
+}
+
+/* 5. Explorer controls, canvas and group inspector. */
+.explorer-toolbar {
+  padding: 19px 22px;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 1.2fr 1.4fr 1.4fr;
+  gap: 15px;
+}
+
+/* Allow controls inside grid and flex layouts to shrink without widening the page. */
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.control label,
+.field-label {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 650;
+}
+
+.control select,
+.control input,
+.control textarea {
+  width: 100%;
+  border: 1px solid #cddad7;
+  border-radius: 7px;
+  background: white;
+  padding: 9px 11px;
+  min-height: 41px;
+  font-size: 12px;
+}
+
+.control textarea {
+  resize: vertical;
+  min-height: 86px;
+}
+
+.explorer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 325px;
+  min-width: 0;
+}
+
+.map-panel {
+  min-width: 0;
+  padding: 18px 22px;
+}
+
+.map-topline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.map-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.map-topline .controls-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controls-inline label {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.controls-inline select {
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  font-size: 11px;
+  max-width: 150px;
+  min-height: 32px;
+}
+
+.canvasbox {
+  position: relative;
+  width: 100%;
+  height: 475px;
+  border: 1px solid #e1e9e5;
+  border-radius: 9px;
+  overflow: hidden;
+  background: #fafcfb;
+}
+
+/* Pointer gestures are handled by app.js for map panning and zooming. */
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+}
+
+canvas:active {
+  cursor: grabbing;
+}
+
+.map-controls {
+  position: absolute;
+  right: 12px;
+  bottom: 33px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.map-controls button {
+  min-height: 31px;
+  width: 32px;
+  padding: 3px;
+  font-size: 16px;
+  background: #fffffff5;
+}
+
+/* The tooltip must not intercept pointer events used to select map points. */
+.tip {
+  position: absolute;
+  display: none;
+  z-index: 8;
+  max-width: 280px;
+  font-size: 11px;
+  background: var(--dark);
+  color: white;
+  padding: 10px 12px;
+  border-radius: 7px;
+  box-shadow: 0 4px 18px #112e3930;
+  pointer-events: none;
+  line-height: 1.6;
+}
+
+.map-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 9px 0 13px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.map-note {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 12px 0 0;
+}
+
+.legend {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  max-height: 175px;
+  overflow: auto;
+}
+
+.legend button {
+  border: 0;
+  background: #f2f6f3;
+  border-radius: 5px;
+  min-height: 29px;
+  padding: 5px 8px;
+  font-size: 10px;
+  text-align: left;
+  font-weight: 500;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  max-width: 100%;
+  line-height: 1.5;
+}
+
+.legend button[aria-pressed=true] {
+  background: #e4f1ea;
+  box-shadow: inset 0 0 0 1px #96beae;
+}
+
+.swatch {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+.legend .count {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  margin-left: 3px;
+}
+
+.map-exports {
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  justify-content: space-between;
+}
+
+.map-exports button {
+  font-size: 11px;
+  min-height: 34px;
+  padding: 6px 10px;
+}
+
+.inspector {
+  padding: 23px 21px;
+  border-left: 1px solid var(--line);
+  background: #fcfdfc;
+  border-radius: 0 0 16px 0;
+}
+
+.inspector .eyebrow {
+  color: var(--accent);
+  margin-bottom: 15px;
+}
+
+.inspector h3 {
+  font-size: 18px;
+  letter-spacing: -.3px;
+  margin-bottom: 8px;
+}
+
+.selection-count {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 13px 0 8px;
+}
+
+.chip {
+  font-size: 10px;
+  padding: 3px 7px;
+  border: 1px solid #dbe6df;
+  background: white;
+  border-radius: 4px;
+  color: #506f60;
+}
+
+.inspector details {
+  margin-top: 16px;
+}
+
+.inspector summary {
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.inspector .control {
+  margin-top: 12px;
+}
+
+.inspector .actions {
+  margin-top: 11px;
+}
+
+.inspector .actions button {
+  font-size: 11px;
+  min-height: 34px;
+}
+
+.status {
+  color: var(--accent);
+  font-size: 11px;
+  min-height: 18px;
+  margin-top: 9px;
+}
+
+.notice {
+  border-left: 3px solid #9abdae;
+  background: #eef4f0;
+  padding: 11px 13px;
+  font-size: 11px;
+  color: #426254;
+  line-height: 1.75;
+}
+
+.inspector .notice {
+  margin-top: 14px;
+}
+
+.review-tools {
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+  margin-top: 18px;
+}
+
+.review-tools .actions {
+  margin-top: 8px;
+}
+
+.review-tools button {
+  font-size: 10px;
+  padding: 6px 8px;
+  min-height: 32px;
+}
+
+.review-tools p {
+  font-size: 10px;
+  color: var(--muted);
+  margin: 6px 0 0;
+}
+
+/* app.js toggles .expanded. Keep these state selectors more specific than the base layout. */
+.explorer-grid.expanded {
+  grid-template-columns: 1fr;
+}
+
+.explorer-grid.expanded .inspector {
+  display: none;
+}
+
+.explorer-grid.expanded .canvasbox {
+  height: 700px;
+}
+
+.article-detail {
+  margin: 14px 0 0;
+  padding: 13px;
+  border: 1px solid var(--line);
+  background: #fafcfb;
+  border-radius: 7px;
+  font-size: 12px;
+}
+
+.article-detail p {
+  margin: 5px 0 0;
+}
+
+.article-detail .eyebrow {
+  font-size: 9px;
+  margin-bottom: 6px;
+  color: var(--accent);
+}
+
+/* 6. Publication browser, selection states and example records. */
+.browser-controls {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) 140px 165px auto;
+  gap: 13px;
+  align-items: end;
+  padding: 19px 22px;
+}
+
+.search-input {
+  position: relative;
+}
+
+.search-input svg {
+  position: absolute;
+  width: 16px;
+  left: 11px;
+  top: 13px;
+  color: #739085;
+}
+
+.search-input input {
+  padding-left: 36px;
+}
+
+.browser-summary {
+  padding: 0 22px 14px;
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Contain table scrolling so reaching its edge does not move the surrounding page. */
+.tablebox {
+  overflow: auto;
+  max-height: 490px;
+  overscroll-behavior: contain;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+caption {
+  text-align: left;
+  padding: 12px;
+  font-size: 12px;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #eef3f0;
+  border-block: 1px solid var(--line);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: #607569;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+th,
+td {
+  padding: 12px 17px;
+  border-bottom: 1px solid #e8ede9;
+}
+
+td {
+  vertical-align: top;
+}
+
+td a {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+}
+
+tbody tr:hover {
+  background: #f6f9f6;
+}
+
+tr.selected {
+  background: #edf6ef;
+}
+
+/* Keep title links visually transparent, including inherited button hover states. */
+.article-title-button {
+  display: block;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+  border: 0;
+  background: transparent !important;
+  padding: 0;
+  min-height: 0;
+  border-radius: 0;
+  color: var(--ink);
+}
+
+.topic-cell {
+  min-width: 170px;
+  max-width: 225px;
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.topic-cell span {
+  display: block;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.title-cell {
+  min-width: 280px;
+  width: 62%;
+}
+
+.empty-results {
+  text-align: center;
+  padding: 40px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pagination {
+  padding: 14px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pagination span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.pagination button {
+  font-size: 11px;
+  min-height: 34px;
+}
+
+.examples {
+  margin-top: 19px;
+}
+
+.examples h3 {
+  font-size: 14px;
+}
+
+.examples details {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 12px 16px;
+  margin-bottom: 7px;
+}
+
+.examples summary {
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.examples p {
+  font-size: 12px;
+  margin: 12px 0 0;
+  line-height: 1.8;
+}
+
+.examples > p {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* 7. Clustering evaluation, scope tabs and result tables. */
+.metrics-top {
+  padding: 23px 25px;
+  border-bottom: 1px solid var(--line);
+}
+
+.metrics-description {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 35px;
+}
+
+.metrics-description p {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.metric-explainer {
+  font-size: 11px;
+  padding: 13px 15px;
+  background: #f3f6f3;
+  border-radius: 8px;
+  color: #516c5d;
+}
+
+.metric-explainer strong {
+  color: var(--ink);
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 8px;
+  background: #eef3ef;
+  width: fit-content;
+  margin-top: 22px;
+}
+
+.tabs button {
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  min-height: 35px;
+  padding: 6px 16px;
+}
+
+.tabs button.active {
+  background: white;
+  color: var(--accent);
+  box-shadow: 0 1px 4px #12352212;
+}
+
+.metricbrief {
+  display: grid;
+  grid-template-columns: 1.5fr repeat(3, 1fr);
+  padding: 23px 25px;
+  gap: 20px;
+}
+
+.metricbrief > div {
+  border-right: 1px solid var(--line);
+  padding-right: 10px;
+}
+
+.metricbrief > div:last-child {
+  border: 0;
+}
+
+.metricbrief .caption {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+
+.metricbrief strong {
+  display: block;
+  font-size: 25px;
+  font-weight: 650;
+  line-height: 1.4;
+  letter-spacing: -.6px;
+}
+
+.metricbrief .solution-value {
+  font-size: 16px;
+  letter-spacing: -.3px;
+}
+
+.plot-wrap {
+  margin: 0 25px 23px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px 0;
+  overflow: auto;
+}
+
+/* Keep plot labels readable; narrow screens scroll horizontally within the plot wrapper. */
+#metricPlot svg {
+  width: 100%;
+  height: auto;
+  min-width: 680px;
+  display: block;
+}
+
+.plot-wrap p {
+  font-size: 10px;
+  color: var(--muted);
+  margin: 8px 0 12px;
+}
+
+.metrics-tables {
+  padding: 0 25px 23px;
+}
+
+.metrics-tables details {
+  margin-top: 15px;
+}
+
+.metrics-tables summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 650;
+  padding: 11px 0;
+}
+
+.metrics-tables .tablebox {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  max-height: 390px;
+}
+
+.metric-table-toolbar {
+  display: flex;
+  gap: 15px;
+  align-items: end;
+  margin: 4px 0 12px;
+}
+
+.metric-table-toolbar .control {
+  max-width: 300px;
+  flex: 1;
+}
+
+.metric-table-toolbar button {
+  font-size: 11px;
+}
+
+/* 8. Methodology, provenance and footer. */
+.methodology {
+  padding: 25px;
+}
+
+.method-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 27px;
+}
+
+.method-grid .eyebrow {
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.method-grid h3 {
+  font-size: 15px;
+}
+
+.method-grid p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.85;
+  margin: 0;
+}
+
+.methodology details {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+  margin-top: 22px;
+}
+
+.methodology summary {
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.methodology pre {
+  font-size: 10px;
+  max-height: 300px;
+  overflow: auto;
+  background: #f5f7f5;
+  padding: 15px;
+  border-radius: 7px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  padding: 0 0 30px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.footer strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.footer p {
+  margin: 4px 0;
+}
+
+.footer a {
+  font-size: 11px;
+}
+
+/* 9. Runtime feedback and floating navigation. */
+.toast {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  background: var(--dark);
+  color: white;
+  border-radius: 9px;
+  padding: 12px 20px;
+  font-size: 12px;
+  box-shadow: 0 4px 30px #112e3929;
+  max-width: calc(100% - 32px);
+  text-align: center;
+}
+
+.error-banner {
+  margin: 20px;
+  padding: 18px;
+  background: #fff0eb;
+  color: #7c3021;
+  border: 1px solid #edc9bd;
+  border-radius: 8px;
+}
+
+/* Fixed viewport positioning keeps this control available while the document scrolls. */
+.back-to-top {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+  padding: 10px 16px;
+  background: var(--accent);
+  color: white;
+  border-radius: 30px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 4px 14px #0002;
+}
+
+.back-to-top:hover {
+  background: var(--accent-hover);
+}
+
+/* 10. Responsive overrides — extra-wide displays. */
+@media (min-width: 1600px) {
+  .canvasbox {
+    height: 535px;
+  }
+}
+
+/* Compact desktop: reduce panel spacing while retaining the inspector column. */
+@media (max-width: 1100px) {
+  .container {
+    width: calc(100% - 44px);
+  }
+
+  .hero-inner {
+    gap: 35px;
+    grid-template-columns: 1fr 235px;
+  }
+
+  .explorer-grid {
+    grid-template-columns: minmax(0, 1fr) 285px;
+  }
+
+  .map-panel {
+    padding: 16px;
+  }
+
+  .inspector {
+    padding: 20px 16px;
+  }
+
+  .stat {
+    padding: 20px;
+  }
+
+  .map-topline {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .canvasbox {
+    height: 445px;
+  }
+
+  .browser-controls {
+    grid-template-columns: 1fr 110px 140px auto;
+  }
+
+  .nav-links {
+    gap: 20px;
+  }
+}
+
+/* Tablet: stack primary panels and arrange the inspector in two columns. */
+@media (max-width: 800px) {
+  .hero-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-side {
+    display: none;
+  }
+
+  .hero {
+    padding: 35px 0 63px;
+  }
+
+  .hero h1 {
+    letter-spacing: -1px;
+    font-size: 36px;
+  }
+
+  .hero-description {
+    font-size: 13px;
+  }
+
+  .nav-badge,
+  .brand span:last-child {
+    display: none;
+  }
+
+  .nav-links {
+    gap: 17px;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stat:nth-child(2) {
+    border-right: 0;
+  }
+
+  .stat:nth-child(-n+2) {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .stat strong {
+    font-size: 26px;
+  }
+
+  .section-heading .tag {
+    display: none;
+  }
+
+  .explorer-toolbar {
+    grid-template-columns: 1fr 1fr;
+    padding: 16px;
+  }
+
+  .explorer-toolbar .control:last-child {
+    grid-column: 1/-1;
+  }
+
+  .explorer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .inspector {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 0 0 16px 16px;
+  }
+
+  .inspector-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+  }
+
+  .inspector-body > div {
+    min-width: 0;
+  }
+
+  .review-tools {
+    margin-top: 15px;
+  }
+
+  .canvasbox {
+    height: 450px;
+  }
+
+  .map-topline {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .map-caption span:first-child {
+    max-width: 75%;
+  }
+
+  .browser-controls {
+    grid-template-columns: 1fr 1fr;
+    padding: 16px;
+  }
+
+  .browser-controls > .control:first-child,
+  .browser-controls > button {
+    grid-column: 1/-1;
+  }
+
+  .metrics-description {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .metricbrief {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .metricbrief > div:nth-child(2) {
+    border: 0;
+  }
+
+  .method-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .footer {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .section-heading {
+    margin-bottom: 16px;
+  }
+
+  .metrics-top,
+  .methodology {
+    padding: 20px;
+  }
+
+  .plot-wrap {
+    margin-inline: 16px;
+  }
+
+  .metrics-tables {
+    padding-inline: 16px;
+  }
+}
+
+/* Mobile: stack controls and inspector content; cap the expanded map at viewport height. */
+@media (max-width: 480px) {
+  .container {
+    width: calc(100% - 28px);
+  }
+
+  .nav-inner {
+    height: 58px;
+    gap: 10px;
+  }
+
+  .nav-links {
+    gap: 13px;
+  }
+
+  .nav-links a {
+    font-size: 10px;
+  }
+
+  .brand {
+    gap: 7px;
+    font-size: 12px;
+  }
+
+  .brand-mark {
+    width: 27px;
+    height: 27px;
+  }
+
+  .hero h1 {
+    font-size: 31px;
+  }
+
+  .hero .eyebrow {
+    font-size: 9px;
+    letter-spacing: 1.3px;
+  }
+
+  .hero-description {
+    font-size: 12px;
+  }
+
+  .hero-actions .btn-link {
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+
+  .stat {
+    padding: 16px;
+  }
+
+  .stat-top,
+  .stat small {
+    font-size: 10px;
+  }
+
+  .stat strong {
+    font-size: 24px;
+  }
+
+  .section-heading h2 {
+    font-size: 21px;
+  }
+
+  .section-heading p {
+    font-size: 12px;
+  }
+
+  .explorer-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .explorer-toolbar .control:last-child {
+    grid-column: auto;
+  }
+
+  .map-topline {
+    flex-direction: column;
+    gap: 9px;
+    align-items: stretch;
+  }
+
+  .controls-inline {
+    justify-content: space-between;
+  }
+
+  .canvasbox {
+    height: 395px;
+  }
+
+  .map-caption {
+    font-size: 9px;
+  }
+
+  .map-exports {
+    gap: 10px;
+  }
+
+  .inspector-body {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .map-panel {
+    padding: 13px;
+  }
+
+  .metrics-top,
+  .methodology {
+    padding: 17px;
+  }
+
+  .metricbrief {
+    padding: 20px 17px;
+  }
+
+  .metricbrief strong {
+    font-size: 22px;
+  }
+
+  .pagination {
+    padding: 13px;
+  }
+
+  .pagination button {
+    padding: 6px 8px;
+  }
+
+  .browser-summary {
+    padding-inline: 16px;
+    align-items: flex-start;
+  }
+
+  .metric-table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .metric-table-toolbar .control {
+    max-width: none;
+  }
+
+  .explorer-grid.expanded .canvasbox {
+    height: 70vh;
+  }
+}
+
+/* Narrow screens: keep navigation compact. */
+@media (max-width: 360px) {
+  .brand {
+    font-size: 0;
+  }
+
+  .nav-links {
+    gap: 12px;
+  }
+}
+
+/* 11. Reduced motion — preserve instant scrolling and disable interface transitions. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  * {
+    transition: none !important;
+  }
+}
+
+/* 12. Print — hide interaction controls, reveal full tables and remove screen-only decoration. */
+@media print {
+  .topbar,
+  .hero-actions,
+  .actions,
+  .review-tools,
+  .browser-controls,
+  .map-controls,
+  .tabs,
+  .footer a,
+  .toast,
+  .back-to-top {
+    display: none !important;
+  }
+
+  .hero {
+    padding: 20px 0 40px;
+    print-color-adjust: exact;
+  }
+
+  .container {
+    width: 100%;
+  }
+
+  .surface {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .explorer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .inspector {
+    display: none;
+  }
+
+  .tablebox {
+    max-height: none;
+  }
+
+  .section,
+  .stats {
+    margin-bottom: 20px;
+  }
+
+  .stat {
+    padding: 12px;
+  }
+
+  .canvasbox {
+    height: 430px;
+  }
+
+  .metricbrief {
+    padding: 10px;
+  }
+
+  details:not([open]) {
+    display: none;
+  }
+
+  .plot-wrap {
+    overflow: visible;
+  }
+
+  #metricPlot svg {
+    min-width: 0;
+  }
+
+  .section-heading .tag {
+    display: none;
+  }
+}

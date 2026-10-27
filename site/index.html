@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Explore the scientific landscape of bioinformatics in Spain, 2000–2025. Interactive BiomedBERT topic maps, publication records and clustering evaluation."
+    >
+    <meta name="theme-color" content="#112e39">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>Bioinformatics in Spain · 2000–2025 | Research Explorer</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23112e39'/%3E%3Cpath d='M11 28L18 12L28 25M11 28L28 25M18 12L30 11' fill='none' stroke='%237bd7c2' stroke-width='2'/%3E%3Cg fill='%23fff'%3E%3Ccircle cx='11' cy='28' r='3'/%3E%3Ccircle cx='18' cy='12' r='3'/%3E%3Ccircle cx='28' cy='25' r='3'/%3E%3Ccircle cx='30' cy='11' r='2'/%3E%3C/g%3E%3C/svg%3E"
+    >
+    <link rel="stylesheet" href="./assets/css/styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#explore">Skip to the research explorer</a>
+
+    <!-- Section IDs below are also used by app.js and the navigation links. -->
+    <header class="topbar">
+      <nav class="container nav-inner" aria-label="Main navigation">
+        <div class="nav-links">
+          <a href="#explore">Explore</a>
+          <a href="#publications">Publications</a>
+          <a href="#evaluation">Evaluation</a>
+          <a href="#methods">Methods</a>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Initialization errors are exposed through this alert by app.js. -->
+    <div id="appError" class="error-banner" role="alert" hidden></div>
+    <noscript>
+      <p class="error-banner">
+        JavaScript is needed to display the interactive map and publication records. Please enable
+        it in your browser.
+      </p>
+    </noscript>
+    <main id="top">
+      <section class="hero" aria-labelledby="pageTitle">
+        <div class="container hero-inner">
+          <div>
+            <h1 id="pageTitle">25 years of bioinformatics<br>in <span>Spain</span> 2000-25: progress, achievements and scientific landscape</h1>
+            <p class="hero-description">
+              Explore the research topics, publications and connections shaping a quarter-century of
+              bioinformatics.
+            </p>
+            <div class="hero-actions">
+              <a href="#explore" class="btn-link">Explore the topic map <span aria-hidden="true">↗</span></a>
+              <a href="#methods" class="btn-link secondary-link">About the analysis</a>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="container">
+
+        <!-- Corpus totals are populated after the research dataset loads. -->
+        <div class="stats" aria-label="Corpus overview">
+          <div class="stat">
+            <div class="stat-top">PUBLICATIONS IN CORPUS <span aria-hidden="true">↗</span></div>
+            <strong id="corpusCount">—</strong>
+            <small>Study period: 2000–2025</small>
+          </div>
+          <div class="stat">
+            <div class="stat-top">ARTICLES ON THE MAP</div>
+            <strong id="plottedCount">—</strong>
+            <small id="coverageNote">Embedded publication records</small>
+          </div>
+          <div class="stat">
+            <div class="stat-top">BROAD RESEARCH GROUPS</div>
+            <strong class="stat-accent" id="broadCount">—</strong>
+            <small>Proposed Leiden hierarchy</small>
+          </div>
+          <div class="stat">
+            <div class="stat-top">CLUSTERING SOLUTIONS</div>
+            <strong id="solutionCount">—</strong>
+            <small id="runsNote">Compared across five seeds</small>
+          </div>
+        </div>
+
+        <!-- Topic explorer: the controls, map and inspector share the active selection. -->
+        <section id="explore" class="section" aria-labelledby="exploreTitle">
+          <div class="section-heading">
+            <div>
+              <span class="section-number">01</span>
+              <div>
+                <h2 id="exploreTitle">Explore the scientific landscape</h2>
+                <p>Each point is an article. Discover the themes behind the publications.</p>
+              </div>
+            </div>
+            <span class="tag"><span class="dot"></span> BiomedBERT · UMAP</span>
+          </div>
+          <div class="surface">
+            <div class="explorer-toolbar">
+              <div class="control">
+                <label for="solution">Clustering solution</label>
+                <select id="solution"></select>
+              </div>
+              <div class="control">
+                <label for="group">Research group</label>
+                <select id="group"></select>
+              </div>
+              <div class="control">
+                <label for="subgroup">Local subtopic</label>
+                <select id="subgroup"></select>
+              </div>
+            </div>
+            <div class="explorer-grid" id="mapGrid">
+              <div class="map-panel">
+                <div class="map-topline">
+                  <span class="map-title"><span class="dot" style="color:var(--accent)"></span> Semantic topic map</span>
+                  <div class="controls-inline">
+                    <label for="mapMode">Colour</label>
+                    <select id="mapMode">
+                      <option value="parents">Broad groups</option>
+                      <option value="subgroups">All subgroups</option>
+                    </select>
+                    <label for="labelMode">Labels</label>
+                    <select id="labelMode">
+                      <option value="names">Names</option>
+                      <option value="ids">IDs</option>
+                      <option value="hidden">Hidden</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="canvasbox">
+                  <canvas
+                    id="map"
+                    tabindex="0"
+                    role="img"
+                    aria-label="Interactive UMAP topic map. Use plus and minus to zoom, arrow keys to pan, and zero to reset. Publication records are available in the table below."
+                    aria-describedby="mapHelp"
+                  ></canvas>
+                  <div id="tooltip" class="tip" role="tooltip"></div>
+                  <div class="map-controls" aria-label="Map zoom controls">
+                    <button id="zoomIn" aria-label="Zoom in" title="Zoom in" type="button">
+                      +
+                    </button>
+                    <button id="zoomOut" aria-label="Zoom out" title="Zoom out" type="button">
+                      −
+                    </button>
+                    <button
+                      id="resetView"
+                      aria-label="Reset map view"
+                      title="Reset view"
+                      type="button"
+                    >
+                      ⟲
+                    </button>
+                  </div>
+                </div>
+                <div class="map-caption" id="mapHelp">
+                  <span>Scroll to zoom · drag to pan · select a point or group label</span>
+                  <span id="zoomLevel">100%</span>
+                </div>
+                <div id="legend" class="legend" aria-label="Select a research group"></div>
+                <p id="mapViewNote" class="map-note"></p>
+                <div class="actions map-exports">
+                  <div class="actions">
+                    <button id="allSubgroups" type="button">Show all subgroups</button>
+                    <button id="expandMap" aria-expanded="false" type="button">Expand map</button>
+                  </div>
+                  <button id="downloadMap" type="button">Export map ↗ PNG</button>
+                </div>
+                <div id="articleInfo" class="article-detail" hidden aria-live="polite"></div>
+              </div>
+              <aside class="inspector" aria-labelledby="groupTitle">
+                <div class="eyebrow">Research group inspector</div>
+                <div class="inspector-body">
+                  <div>
+                    <h3 id="groupTitle">A closer look at the research</h3>
+                    <p id="selectionCount" class="selection-count" role="status"></p>
+                    <p id="inspectorHelp" class="muted">
+                      Choose a group from the map or the selector to inspect its topics, example
+                      articles and proposed name.
+                    </p>
+                    <div id="terms" class="chips"></div>
+                    <p id="termNote" class="muted" hidden>
+                      Text-derived descriptors; these are not validated category names.
+                    </p>
+                    <details id="interpretationDetails" hidden>
+                      <summary>Interpretation of this group</summary>
+                      <div id="groupNote" class="notice"></div>
+                    </details>
+                  </div>
+                  <div>
+                    <details id="reviewEditor">
+                      <summary>Review the name and scope</summary>
+                      <div class="control">
+                        <label for="nameEdit">Group or subtopic name</label>
+                        <input
+                          id="nameEdit"
+                          type="text"
+                          maxlength="250"
+                          placeholder="Select a group first"
+                        >
+                      </div>
+                      <div class="control">
+                        <label for="notesEdit">Review notes</label>
+                        <textarea
+                          id="notesEdit"
+                          maxlength="10000"
+                          placeholder="Scope, ambiguities or naming decisions"
+                        ></textarea>
+                      </div>
+                      <div class="actions">
+                        <button id="applyName" class="primary" type="button">Save changes</button>
+                        <button id="restoreName" type="button">Restore proposal</button>
+                      </div>
+                    </details>
+                    <div id="saveStatus" class="status" role="status"></div>
+                    <div class="review-tools">
+                      <span class="field-label">Your review workspace</span>
+                      <div class="actions">
+                        <button id="exportReviews" type="button">Export reviews</button>
+                        <button id="importReviews" type="button">Import reviews</button>
+                        <input id="reviewFile" type="file" accept=".json,application/json" hidden>
+                      </div>
+                      <p>
+                        Edits are saved in this browser. Export a copy to move them between devices.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <!-- Publication browser: filters and pagination apply to the active map selection. -->
+        <section id="publications" class="section" aria-labelledby="publicationsTitle">
+          <div class="section-heading">
+            <div>
+              <span class="section-number">02</span>
+              <div>
+                <h2 id="publicationsTitle">Browse the publications</h2>
+                <p>Inspect the articles behind the active map selection.</p>
+              </div>
+            </div>
+            <button id="downloadArticles" type="button">Export selection ↗ CSV</button>
+          </div>
+          <div class="surface">
+            <div class="browser-controls">
+              <div class="control">
+                <label for="search">Search by title or PMID</label>
+                <div class="search-input">
+                  <svg fill="none" aria-hidden="true" viewBox="0 0 24 24">
+                    <circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="1.8"></circle>
+                    <path d="M16 16L21 21" stroke="currentColor" stroke-width="1.8"></path>
+                  </svg>
+                  <input
+                    id="search"
+                    type="search"
+                    placeholder="e.g. single-cell, plant, 31834368"
+                    autocomplete="off"
+                  >
+                </div>
+              </div>
+              <div class="control">
+                <label for="year">Publication year</label>
+                <select id="year"></select>
+              </div>
+              <div class="control">
+                <label for="sort">Sort articles</label>
+                <select id="sort">
+                  <option value="original">Original order</option>
+                  <option value="newest">Newest first</option>
+                  <option value="oldest">Oldest first</option>
+                  <option value="title">Title A–Z</option>
+                </select>
+              </div>
+              <button id="clearFilters" type="button">Clear filters</button>
+            </div>
+            <div class="browser-summary">
+              <span id="resultSummary" role="status"></span>
+              <span id="activeFilterNote">All research groups</span>
+            </div>
+            <div
+              id="articleTable"
+              class="tablebox"
+              tabindex="0"
+              role="region"
+              aria-label="Filtered publication records"
+            ></div>
+            <div class="pagination">
+              <button id="prevArticles" type="button">← Previous</button>
+              <span id="articlePage"></span>
+              <button id="nextArticles" type="button">Next →</button>
+            </div>
+          </div>
+          <div id="examples" class="examples"></div>
+        </section>
+        <section id="evaluation" class="section" aria-labelledby="evaluationTitle">
+          <div class="section-heading">
+            <div>
+              <span class="section-number">03</span>
+              <div>
+                <h2 id="evaluationTitle">Evaluate the grouping</h2>
+                <p>Compare separation and reproducibility across clustering solutions.</p>
+              </div>
+            </div>
+            <span class="tag">5 random seeds per alternative</span>
+          </div>
+          <div class="surface">
+            <div class="metrics-top">
+              <div class="metrics-description">
+                <p>
+                  Leiden at resolution 0.5 achieves the highest mean global silhouette among the
+                  supplied solutions (0.16820). However, this low positive value indicates weak
+                  separation and substantial thematic overlap in the original embedding space; it
+                  does not demonstrate clearly distinct research groups. K-means with five groups
+                  shows greater stability across seeds (mean ARI 0.988).
+
+                  The overlap may partly reflect the interdisciplinary nature of bioinformatics,
+                  where methods, data types and biological questions are shared across research areas.
+                  This is a possible interpretation rather than an established explanation; embedding
+                  and clustering choices may also influence separation. The proposed hierarchy is
+                  therefore an exploratory framework that combines quantitative evidence with the
+                  interpretation of terms and example articles.
+                </p>
+                <div class="metric-explainer"><strong>Silhouette</strong> describes separation in the original embedding space. Values near zero indicate overlap; this descriptive score is not a p-value.<br><strong>Adjusted Rand index (ARI)</strong> measures agreement between seeds. It does not provide external validation.</div>
+              </div>
+              <div class="tabs" role="tablist" aria-label="Evaluation scope">
+                <button
+                  id="globalTab"
+                  class="active"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="evaluationPanel"
+                  type="button"
+                >
+                  Global solutions
+                </button>
+                <button
+                  id="localTab"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="evaluationPanel"
+                  tabindex="-1"
+                  type="button"
+                >
+                  Local subdivisions
+                </button>
+              </div>
+            </div>
+
+            <!-- Both evaluation tabs use this panel; keep their ARIA references in sync. -->
+            <div id="evaluationPanel" role="tabpanel" aria-labelledby="globalTab">
+              <div id="metricBrief" class="metricbrief"></div>
+              <div class="plot-wrap">
+                <div id="metricPlot"></div>
+                <p>
+                  Small dots: individual seeds · large dot: mean · horizontal line: ±1 standard
+                  deviation. Green highlights the current proposal.
+                </p>
+              </div>
+              <div class="metrics-tables">
+                <details open>
+                  <summary>Summary across five seeds</summary>
+                  <div
+                    id="summaryTable"
+                    class="tablebox"
+                    tabindex="0"
+                    role="region"
+                    aria-label="Clustering summary metrics"
+                  ></div>
+                </details>
+                <details>
+                  <summary>Individual seed results</summary>
+                  <div class="metric-table-toolbar">
+                    <div class="control">
+                      <label for="seedFilter">Filter runs by solution</label>
+                      <select id="seedFilter"></select>
+                    </div>
+                    <button id="downloadMetrics" type="button">Export all metrics ↗ JSON</button>
+                  </div>
+                  <div
+                    id="seedTable"
+                    class="tablebox"
+                    tabindex="0"
+                    role="region"
+                    aria-label="Individual clustering runs"
+                  ></div>
+                </details>
+                <p id="localMetricNote" class="muted" style="margin-top:14px" hidden>
+                  Local silhouette scores are computed within each parent group and are not directly
+                  comparable with global scores. Select a parent group to highlight its proposed
+                  subdivision.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Scientific interpretation and provenance of the supplied analysis. -->
+        <section id="methods" class="section" aria-labelledby="methodsTitle">
+          <div class="section-heading">
+            <div>
+              <span class="section-number">04</span>
+              <div>
+                <h2 id="methodsTitle">About the analysis</h2>
+                <p>How to read the map and interpret the evidence.</p>
+              </div>
+            </div>
+          </div>
+          <div class="surface methodology">
+            <div class="method-grid">
+              <div>
+                <div class="eyebrow">01 / Article representations</div>
+                <h3>BiomedBERT embeddings</h3>
+                <p>
+                  Representations were extracted from the supplied BiomedBERT checkpoint.
+                  Non-special token vectors were averaged per fragment and L2-normalised; fragment
+                  vectors were then averaged and normalised per article. The encoder was frozen
+                  during extraction.
+                </p>
+              </div>
+              <div>
+                <div class="eyebrow">02 / Shared coordinates</div>
+                <h3>One map, multiple solutions</h3>
+                <p>
+                  All 22 clustering solutions use the same supplied UMAP coordinates. Changing a
+                  solution, label or colour only changes the display. The 5,785 mapped records are a
+                  subset of the full 5,914-publication corpus; this viewer does not assign a reason
+                  to the difference.
+                </p>
+              </div>
+              <div>
+                <div class="eyebrow">03 / Interpretation</div>
+                <h3>An exploratory hierarchy</h3>
+                <p>
+                  The representative Leiden solution contains five broad groups. Four are subdivided
+                  into 15 proposed local subtopics; group 5 remains undivided. Topic names are
+                  working interpretations. UMAP distances and visual overlap alone do not establish
+                  cluster quality or scientific boundaries.
+                </p>
+              </div>
+            </div>
+            <details>
+              <summary>Technical provenance and analysis configuration</summary>
+              <p class="muted" style="margin-top:12px">
+                The checkpoint identifier is retained from the supplied analysis. Its name indicates
+                a fine-tuned checkpoint; frozen extraction does not imply that it was never
+                fine-tuned. Absolute workstation paths have been reduced to their filenames for this
+                public viewer.
+              </p>
+              <pre id="provenance"></pre>
+              <button id="downloadProvenance" type="button">Download provenance JSON</button>
+            </details>
+          </div>
+        </section>
+        <footer class="footer"></footer>
+      </div>
+    </main>
+    <div id="toast" class="toast" role="status" hidden></div>
+
+    <!-- Bootstrap review state: app.js reads this element by ID. Keep its contents valid JSON. -->
+    <script id="initial-review" type="application/json">{}</script>
+    <script src="./assets/js/app.js" defer></script>
+
+    <!-- Native fragment navigation keeps this control usable without JavaScript. -->
+    <a href="#top" class="back-to-top" aria-label="Back to top">
+      <svg
+        width="20"
+        height="20"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+      >
+        <path d="M12 20V4M5 11l7-7 7 7"></path>
+      </svg>
+    </a>
+  </body>
+</html>

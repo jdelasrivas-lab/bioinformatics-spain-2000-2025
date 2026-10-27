@@ -1,0 +1,29 @@
+{
+  "name": "bioinformatics-spain-explorer",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Interactive explorer of bioinformatics research in Spain (2000–2025), with BiomedBERT topic maps and clustering evaluation.",
+  "author": {
+    "name": "Emma Pérez García"
+  },
+  "keywords": [
+    "bioinformatics",
+    "spain",
+    "biomedbert",
+    "umap",
+    "leiden",
+    "research-explorer"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "npm run serve",
+    "serve": "python3 -m http.server 8000 --bind 127.0.0.1 --directory site",
+    "validate": "python3 scripts/validate.py",
+    "test": "node --test tests/*.test.js",
+    "test:watch": "node --test --watch tests/*.test.js",
+    "check": "npm run validate && npm test"
+  }
+}
