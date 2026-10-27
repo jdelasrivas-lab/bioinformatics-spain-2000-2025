@@ -4,6 +4,8 @@ The **Bioinformatics in Spain Research Explorer** is an interactive companion to
 
 The application provides a shared UMAP map, a searchable publication browser, comparisons of clustering solutions and a workspace for reviewing topic names and scope. The bundled dataset contains **5,914 publications**, including **5,785 mapped records**, and **22 global clustering solutions**.
 
+[**Open the interactive explorer →**](https://jdelasrivas-lab.github.io/bioinformatics-spain-2000-2025/)
+
 ## Rationale
 
 Bioinformatics connects computational methods with biological questions across many research areas. Its development is therefore reflected both in the production of publications and in the methods, resources and applications that these publications share.
